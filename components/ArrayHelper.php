@@ -57,16 +57,19 @@ class ArrayHelper {
    * @static
    * @param string $value
    * @param array $array
+   * @param bool $exactmatch
    * @return bool
    */
-  public static function deepSearchContainValue($value, $array) {
+  public static function deepSearchContainValue($value, $array, $exactmatch = true) {
     foreach ($array as $k=>$v) {
-      if ($v == $value) {
-        return true;
-      } else if (is_array($v)) {
-        if (ArrayHelper::deepSearchContainValue($value, $v, false) !== false) {
+      if (is_array($v)) {
+        if (ArrayHelper::deepSearchContainValue($value, $v, $exactmatch) !== false) {
           return true;
         }
+      } else if ($exactmatch && (string)$v == (string)$value) {
+        return true;
+      } else if (!$exactmatch && stripos((string)$v, (string)$value) !== false) {
+        return true;
       }
     }
     return false;
