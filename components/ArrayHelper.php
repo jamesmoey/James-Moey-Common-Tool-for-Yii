@@ -89,6 +89,12 @@ class ArrayHelper {
     return implode($glue, $array);
   }
 
+  /**
+   * Recursively remove empty value from the array.
+   * @static
+   * @param array $array by reference
+   * @return void
+   */
   public static function trimEmptyValue(&$array) {
     foreach ($array as $key=>$value) {
       if (is_array($value)) {
@@ -100,6 +106,7 @@ class ArrayHelper {
   }
 
   /**
+   * Extract an array of value from the model attribute
    * @static
    * @param CActiveRecord[] $models
    * @param string $attribute
