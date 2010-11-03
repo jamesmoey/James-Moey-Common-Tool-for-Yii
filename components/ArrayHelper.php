@@ -98,4 +98,18 @@ class ArrayHelper {
       }
     }
   }
+
+  /**
+   * @static
+   * @param CActiveRecord[] $models
+   * @param string $attribute
+   * @return array
+   */
+  public static function extractListOfValuesFromModels($models, $attribute) {
+    $result = array();
+    foreach ($models as $m) {
+      $result[] = $m->$attribute;
+    }
+    return $result;
+  }
 }
