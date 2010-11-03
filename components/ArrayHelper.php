@@ -88,4 +88,14 @@ class ArrayHelper {
     }
     return implode($glue, $array);
   }
+
+  public static function trimEmptyValue(&$array) {
+    foreach ($array as $key=>$value) {
+      if (is_array($value)) {
+        ArrayHelper::trimEmptyValue($array[$key]);
+      } else if (strlen($value) == 0) {
+        unset($array[$key]);
+      }
+    }
+  }
 }
