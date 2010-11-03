@@ -122,4 +122,23 @@ class ArrayHelper {
     }
     return $result;
   }
+
+  /**
+   * Run through a list of CActiveRecord models and remove all the duplicate.
+   * @static
+   * @param CActiveRecord[] $list
+   * @return CActiveRecord[] Unique array of CActiveRecord
+   */
+  public static function uniqueModelList($list) {
+    $keys = array();
+    $result = array();
+    foreach ($list as $model) {
+      $key = $model->getPrimaryKey();
+      if (array_search($key, $keys) === false) {
+        $keys[] = $model->getPrimaryKey();
+        $result[] = $model;
+      }
+    }
+    return $result;
+  }
 }
