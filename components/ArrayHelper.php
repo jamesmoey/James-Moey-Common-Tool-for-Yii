@@ -141,4 +141,21 @@ class ArrayHelper {
     }
     return $result;
   }
+
+  public static function generateListOfMonth($format = 'm') {
+    $list = array();
+    for($i = 1; $i <= 12; $i++) {
+      $list[$i] = date($format, mktime(0,0,0,$i,1,2000));
+    }
+    return $list;
+  }
+
+  public static function generateListOfYear($format = 'Y') {
+    $list = array();
+    for($i = 0; $i < 10; $i++) {
+      $year = date($format)+$i;
+      $list[$year] = $year;
+    }
+    return $list;
+  }
 }
