@@ -124,6 +124,46 @@ class ArrayHelper {
   }
 
   /**
+   * Flatten Models Attribute.
+   *
+   * @static
+   * @param CActiveRecord[] $models
+   * @param array|true $extraAttributes, empty array as default. Set to true to collect all the properties by reflection.
+   * @return array of 'Model ID' => { 'Attribute' => 'Attribute Value' }
+   */
+  public static function flattenModelsAttribute($models, $extraAttributes = array()) {
+    $result = array();
+    foreach ($models as $m) {
+      $values = $m->getAttributes();
+      if ($extraAttributes === true) {
+        $refObj = new ReflectionObject($m);
+        foreach($refObj->getProperties() as $refProp) {
+          $attr = $refProp->getName();
+          $value = $refProp->getValue($m);
+          $values[$attr] = $value;
+        }
+      } else {
+        foreach($extraAttributes as $attr) {
+          $values[$attr] = $m->$attr;
+        }
+      }
+      ArrayHelper::removeObjectFromArray($values);
+      $result[$m->getPrimaryKey()] = $values;
+    }
+    return $result;
+  }
+
+  public static function removeObjectFromArray(&$array) {
+    foreach ($array as $attr=>$value) {
+      if (is_object($value)) unset($array[$attr]);
+      else if (is_object($attr)) unset($array[$attr]);
+      else if (is_callable($value)) unset($array[$attr]);
+      else if (is_resource($value)) unset($array[$attr]);
+      else if (is_array($value)) ArrayHelper::removeObjectFromArray($array[$attr]);
+    }
+  }
+
+  /**
    * Run through a list of CActiveRecord models and remove all the duplicate.
    * @static
    * @param CActiveRecord[] $list
