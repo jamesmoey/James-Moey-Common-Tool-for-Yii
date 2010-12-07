@@ -57,16 +57,19 @@ class ArrayHelper {
    * @static
    * @param string $value
    * @param array $array
+   * @param bool $exactmatch
    * @return bool
    */
-  public static function deepSearchContainValue($value, $array) {
+  public static function deepSearchContainValue($value, $array, $exactmatch = true) {
     foreach ($array as $k=>$v) {
-      if ($v == $value) {
-        return true;
-      } else if (is_array($v)) {
-        if (ArrayHelper::deepSearchContainValue($value, $v, false) !== false) {
+      if (is_array($v)) {
+        if (ArrayHelper::deepSearchContainValue($value, $v, $exactmatch) !== false) {
           return true;
         }
+      } else if ($exactmatch && (string)$v == (string)$value) {
+        return true;
+      } else if (!$exactmatch && stripos((string)$v, (string)$value) !== false) {
+        return true;
       }
     }
     return false;
@@ -87,5 +90,72 @@ class ArrayHelper {
       }
     }
     return implode($glue, $array);
+  }
+
+  /**
+   * Recursively remove empty value from the array.
+   * @static
+   * @param array $array by reference
+   * @return void
+   */
+  public static function trimEmptyValue(&$array) {
+    foreach ($array as $key=>$value) {
+      if (is_array($value)) {
+        ArrayHelper::trimEmptyValue($array[$key]);
+      } else if (strlen($value) == 0) {
+        unset($array[$key]);
+      }
+    }
+  }
+
+  /**
+   * Extract an array of value from the model attribute
+   * @static
+   * @param CActiveRecord[] $models
+   * @param string $attribute
+   * @return array
+   */
+  public static function extractListOfValuesFromModels($models, $attribute) {
+    $result = array();
+    foreach ($models as $m) {
+      $result[] = $m->$attribute;
+    }
+    return $result;
+  }
+
+  /**
+   * Run through a list of CActiveRecord models and remove all the duplicate.
+   * @static
+   * @param CActiveRecord[] $list
+   * @return CActiveRecord[] Unique array of CActiveRecord
+   */
+  public static function uniqueModelList($list) {
+    $keys = array();
+    $result = array();
+    foreach ($list as $model) {
+      $key = $model->getPrimaryKey();
+      if (array_search($key, $keys) === false) {
+        $keys[] = $model->getPrimaryKey();
+        $result[] = $model;
+      }
+    }
+    return $result;
+  }
+
+  public static function generateListOfMonth($format = 'm') {
+    $list = array();
+    for($i = 1; $i <= 12; $i++) {
+      $list[$i] = date($format, mktime(0,0,0,$i,1,2000));
+    }
+    return $list;
+  }
+
+  public static function generateListOfYear($format = 'Y') {
+    $list = array();
+    for($i = 0; $i < 10; $i++) {
+      $year = date($format)+$i;
+      $list[$year] = $year;
+    }
+    return $list;
   }
 }
