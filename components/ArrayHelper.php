@@ -198,4 +198,23 @@ class ArrayHelper {
     }
     return $list;
   }
+
+  public static function flatternArray($array, $prepandKey = false) {
+    $result = array();
+    foreach ($array as $k=>$v) {
+      if (is_array($v)) {
+        if ($prepandKey === false) {
+          $result += self::flatternArray($v, false);
+        } else if (($prepandKey === true) && (!is_integer($k))) {
+          $result += self::flatternArray($v, $k);
+        } else {
+          $result += self::flatternArray($v, $prepandKey);
+        }
+      } else {
+        if (($prepandKey === false) || ($prepandKey === true)) $result[$k] = $v;
+        else $result[$prepandKey.'.'.$k] = $v;
+      }
+    }
+    return $result;
+  }
 }
