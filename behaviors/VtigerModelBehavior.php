@@ -15,5 +15,6 @@ class VtigerModelBehavior extends CActiveRecordBehavior {
       $crmentity->save();
       $model->setPrimaryKey($id);
     }
+    return true;
   }
 }
