@@ -1,6 +1,9 @@
 <?php
 
 class VtigerModelBehavior extends CActiveRecordBehavior {
+
+  protected $cf = false;
+
   public function beforeSave($event) {
     /** @var CActiveRecord $model */
     $model = $this->getOwner();
@@ -13,7 +16,24 @@ class VtigerModelBehavior extends CActiveRecordBehavior {
       $crmentity->createdtime = $crmentity->modifiedtime = date('Y-m-d H:i:s');
       $crmentity->setype = isset($model->type) ? $model->type : get_class($model);
       $crmentity->save();
+      $classname = false;
+      /** @var $schema CDbSchema */
+      $schema = $crmentity->getDbConnection()->getSchema();
+      if ($schema->getTable(get_class($model) . 'cf') != null) $classname = get_class($model).'cf';
+      else if ($schema->getTable(substr(get_class($model),0, -1) . 'cf') == null) $classname = substr(get_class($model),0, -1) . 'cf';
+      if ($classname != false) {
+        /** @var $cf CActiveRecord */
+        $this->cf = new $classname();
+        $this->cf->setPrimaryKey($id);
+      }
       $model->setPrimaryKey($id);
+    }
+    return true;
+  }
+
+  public function afterSave($event) {
+    if ($this->cf != false) {
+      $this->cf->save();
     }
     return true;
   }
