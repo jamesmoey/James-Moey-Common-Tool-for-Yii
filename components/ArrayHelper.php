@@ -217,4 +217,30 @@ class ArrayHelper {
     }
     return $result;
   }
+
+  /**
+   * Sort Model by the attribute value.
+   *
+   * @static
+   * @param CActiveRecord[] $list
+   * @param string $attribute
+   * @param int $sort_flag
+   *  SORT_REGULAR - compare items normally (don't change types)
+   *  SORT_NUMERIC - compare items numerically
+   *  SORT_STRING - compare items as strings
+   *  SORT_LOCALE_STRING - compare items as strings, based on the current locale. Added in PHP 4.4.0 and 5.0.2, it uses the system locale, which can be changed using setlocale().
+   *
+   * @return array
+   */
+  public static function sortModelList($list, $attribute, $sort_flag = SORT_REGULAR) {
+    $sort = array();
+    foreach ($list as $item) {
+      $type = $item->getTableSchema()->getColumn($attribute)->dbType;
+      if (($type == "date") && ($type == "datetime")) $key = strtotime($item->getAttribute($attribute));
+      else $key = $item->getAttribute($attribute);
+      $sort[$key] = $item;
+    }
+    ksort($sort, $sort_flag);
+    return $sort;
+  }
 }
