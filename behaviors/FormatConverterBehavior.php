@@ -61,6 +61,7 @@ class FormatConverterBehavior extends CActiveRecordBehavior {
     $attributes =& $attributesRef[0];
     foreach ($this->_dateVariables as $field) {
       $time = strtotime($attributes[$field]);
+      $date = '';
       if ($time <= 0) {
         if ($function != NULL) call_user_func($function, $field, '');
         else $attributes[$field] = '';
@@ -83,6 +84,7 @@ class FormatConverterBehavior extends CActiveRecordBehavior {
     }
     foreach ($this->_datetimeVariables as $field) {
       $time = strtotime($attributes[$field]);
+      $date = '';
       if ($time <= 0) {
         call_user_func($function, $field, '');
         continue;
@@ -135,7 +137,7 @@ class FormatConverterBehavior extends CActiveRecordBehavior {
       if ($time == 0) $time = strtotime($date);
       if ($time > 0) {
         if ($function != NULL) call_user_func($function, $field, date('Y-m-d H:i:s', $time));
-        else $attributes[$field] = date('Y-m-d', $time);
+        else $attributes[$field] = date('Y-m-d H:i:s', $time);
       }
     }
   }
