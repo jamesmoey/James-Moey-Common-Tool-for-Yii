@@ -243,4 +243,33 @@ class ArrayHelper {
     ksort($sort, $sort_flag);
     return $sort;
   }
+
+  /**
+   * Concat String from multiple array together and form a new array.
+   * Example
+   * <code>
+   * $name = array("apple", "pear", ..);
+   * $price = array(1.2, 0.6, ..);
+   * $nameWithPrice = ArrayHelper.concatStringArray("{1} - {2}", $name, $price);
+   * </code>
+   * $nameWithPrice will contain array("apple - 1.2", "pear - 0.6", ...)
+   *
+   * @static
+   * @param string $format of the result, {x} for replacement holder, x start from 1
+   * @param array 2 or more array.
+   *
+   * @return array
+   */
+  public static function concatStringArray() {
+    $format = func_get_arg(0);
+    $resultArray = array();
+    for ($i = 1; $i < func_num_args(); $i++) {
+      $array = func_get_arg($i);
+      foreach ($array as $k=>$value) {
+        if (!isset($resultArray[$k])) $resultArray[$k] = $format;
+        $resultArray[$k] = str_replace('{'.$i.'}', $value, $resultArray[$k]);
+      }
+    }
+    return $resultArray;
+  }
 }
