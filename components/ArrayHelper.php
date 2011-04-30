@@ -109,7 +109,7 @@ class ArrayHelper {
   }
 
   /**
-   * Extract an array of value from the model attribute
+   * Extract a single array from the array of models
    * @static
    * @param CActiveRecord[] $models
    * @param string $attribute
@@ -118,9 +118,57 @@ class ArrayHelper {
   public static function extractListOfValuesFromModels($models, $attribute) {
     $result = array();
     foreach ($models as $m) {
-      $result[] = $m->$attribute;
+      $result[] = ArrayHelper::extractValueFromModel($m, $attribute);
     }
     return $result;
+  }
+
+  /**
+   * Extract multiple attribute from the array of models
+   *
+   * @static
+   * @param CActiveRecord[] $models
+   * @param array $attributes, array of New Fieldname => Reference To Attribute Name. Use dot to refer to relation's atttribute name.
+   * @return array
+   */
+  public static function extractMultipleListOfValuesFromModels($models, $attributes) {
+    $result = array();
+    foreach ($models as $m) {
+      $values = array();
+      foreach ($attributes as $key=>$attr) {
+        $values[$key] = ArrayHelper::extractValueFromModel($m, $attr);
+      }
+      $result[] = $values;
+    }
+    return $result;
+  }
+
+  /**
+   * Extract a single value from a model
+   * @static
+   * @param CActiveRecord $model
+   * @param string $attribute, use dot to specify relation's attribute
+   * @return mixed
+   */
+  public static function extractValueFromModel($model, $attribute) {
+    if (strpos($attribute, '.') === false) {
+      if (isset($model->$attribute)) return $model->$attribute;
+      else return null;
+    } else {
+      $listAttribute = explode(".", $attribute);
+      $attr = array_shift($listAttribute);
+      $relation = $model->getActiveRelation($attr);
+      if ($relation === null) return null;
+      if ($relation instanceof CBelongsToRelation || $relation instanceof CHasOneRelation) {
+        return ArrayHelper::extractValueFromModel($model->$attr, join('.', $listAttribute));
+      } else {
+        $list = array();
+        foreach ($model->$relation as $relations) {
+          $list[] = ArrayHelper::extractValueFromModel($relations, join('.', $listAttribute));
+        }
+        return $list;
+      }
+    }
   }
 
   /**
@@ -208,7 +256,7 @@ class ArrayHelper {
         } else if (($prepandKey === true) && (!is_integer($k))) {
           $result += self::flatternArray($v, $k);
         } else {
-          $result += self::flatternArray($v, $prepandKey);
+          $result += self::flatternArray($v, $prepandKey.'.'.$k);
         }
       } else {
         if (($prepandKey === false) || ($prepandKey === true)) $result[$k] = $v;
@@ -271,5 +319,32 @@ class ArrayHelper {
       }
     }
     return $resultArray;
+  }
+
+  public static function intersectAssocRecursive($arr1, $arr2) {
+    if (!is_array($arr1) || !is_array($arr2)) {
+      return $arr1 == $arr2;
+    }
+    $commonkeys = array_intersect(array_keys($arr1), array_keys($arr2));
+    $ret = array();
+    foreach ($commonkeys as $key) {
+      $ret[$key] = ArrayHelper::intersectAssocRecursive($arr1[$key], $arr2[$key]);
+    }
+    return $ret;
+  }
+
+  public static function diffRecursive($aArray1, $aArray2) {
+    $aReturn = array();
+    foreach ($aArray1 as $mKey => $mValue) {
+      if (array_key_exists($mKey, $aArray2)) {
+        if (is_array($mValue)) {
+          $aRecursiveDiff = ArrayHelper::diffRecursive($mValue, $aArray2[$mKey]);
+          if (count($aRecursiveDiff)) $aReturn[$mKey] = $aRecursiveDiff;
+        } else {
+          if ($mValue != $aArray2[$mKey]) $aReturn[$mKey] = $mValue;
+        }
+      } else $aReturn[$mKey] = $mValue;
+    }
+    return $aReturn;
   }
 }
