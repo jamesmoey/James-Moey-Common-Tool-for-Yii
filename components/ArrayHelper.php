@@ -208,7 +208,7 @@ class ArrayHelper {
         } else if (($prepandKey === true) && (!is_integer($k))) {
           $result += self::flatternArray($v, $k);
         } else {
-          $result += self::flatternArray($v, $prepandKey);
+          $result += self::flatternArray($v, $prepandKey.'.'.$k);
         }
       } else {
         if (($prepandKey === false) || ($prepandKey === true)) $result[$k] = $v;
@@ -271,5 +271,32 @@ class ArrayHelper {
       }
     }
     return $resultArray;
+  }
+
+  public static function intersectAssocRecursive($arr1, $arr2) {
+    if (!is_array($arr1) || !is_array($arr2)) {
+      return $arr1 == $arr2;
+    }
+    $commonkeys = array_intersect(array_keys($arr1), array_keys($arr2));
+    $ret = array();
+    foreach ($commonkeys as $key) {
+      $ret[$key] = ArrayHelper::intersectAssocRecursive($arr1[$key], $arr2[$key]);
+    }
+    return $ret;
+  }
+
+  public static function diffRecursive($aArray1, $aArray2) {
+    $aReturn = array();
+    foreach ($aArray1 as $mKey => $mValue) {
+      if (array_key_exists($mKey, $aArray2)) {
+        if (is_array($mValue)) {
+          $aRecursiveDiff = ArrayHelper::diffRecursive($mValue, $aArray2[$mKey]);
+          if (count($aRecursiveDiff)) $aReturn[$mKey] = $aRecursiveDiff;
+        } else {
+          if ($mValue != $aArray2[$mKey]) $aReturn[$mKey] = $mValue;
+        }
+      } else $aReturn[$mKey] = $mValue;
+    }
+    return $aReturn;
   }
 }
