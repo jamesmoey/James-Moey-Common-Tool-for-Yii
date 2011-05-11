@@ -63,6 +63,64 @@ class ArrayHelperTest extends CTestCase {
     $m1->var1 = 'AA';
     $list = ArrayHelper::flattenModelsAttribute(array($m1), array('var2'));
   }
+
+  /**
+   * @dataProvider extractArrayProvider
+   */
+  public function testExtractArray($test, $path, $result) {
+    $this->assertEquals(
+      $result,
+      ArrayHelper::extractArray($test, $path)
+    );
+  }
+
+  /**
+   * @dataProvider flattenArrayProvider
+   */
+  public function testFlattenArray($array, $prepend, $result) {
+    $this->assertEquals(
+      $result,
+      ArrayHelper::flatternArray($array, $prepend)
+    );
+  }
+
+  public function flattenArrayProvider() {
+    $data = array(
+      array('name'=>array('first'=>'abc', 'last'=>'zzz')),
+      array('name'=>array('first'=>'ccc')),
+      array('name'=>array('last'=>'kkk')),
+    );
+    $data2 = array(
+      "list"=>array(
+        array("shirt"=>"small", 'size'=>array("a"=>3,"b"=>4,"c"=>5)),
+      )
+    );
+    return array(
+      array($data, true, array("0.name.first"=>"abc", "0.name.last"=>"zzz", "1.name.first"=>"ccc", "2.name.last"=>"kkk")),
+      array($data, false, array("first"=>"ccc", "last"=>"kkk")),
+      array($data2, true, array("list.0.shirt"=>"small","list.0.size.a"=>3,"list.0.size.b"=>4,"list.0.size.c"=>5)),
+      array($data2, false, array("shirt"=>"small","a"=>3,"b"=>4,"c"=>5)),
+    );
+  }
+
+  public function extractArrayProvider() {
+    $data = array(
+      array('name'=>array('first'=>'abc', 'last'=>'zzz', "middle"=>"ccc")),
+      array('name'=>array('first'=>'efg', 'last'=>'kkk')),
+    );
+    $data2 = array(
+      "list"=>array(
+        array("shirt"=>"small", 'size'=>array(3,4,5)),
+        array("shirt"=>"large", 'size'=>array(1,2,3,4)),
+      )
+    );
+    return array(
+      array($data, "name.first", array("abc","efg")),
+      array($data, "name.middle", array("ccc")),
+      array($data2, "list.shirt", array("small","large")),
+      array($data2, "list.size", array(array(3,4,5),array(1,2,3,4))),
+    );
+  }
 }
 
 class TestModel extends CModel {
