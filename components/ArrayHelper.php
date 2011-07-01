@@ -129,16 +129,32 @@ class ArrayHelper {
    * @static
    * @param CActiveRecord[] $models
    * @param array $attributes, array of New Fieldname => Reference To Attribute Name. Use dot to refer to relation's atttribute name.
+   * @param bool $treatMultipleAsNew Treat result in array as new row.
    * @return array
    */
-  public static function extractMultipleListOfValuesFromModels($models, $attributes) {
+  public static function extractMultipleListOfValuesFromModels($models, $attributes, $treatMultipleAsNew = false, $excludeNull = false) {
     $result = array();
     foreach ($models as $m) {
       $values = array();
       foreach ($attributes as $key=>$attr) {
-        $values[$key] = ArrayHelper::extractValueFromModel($m, $attr);
+        $values[$key] = ArrayHelper::extractValueFromModel($m, $attr, $excludeNull);
+        if ($excludeNull && $values[$key] == NULL) continue 2;
       }
-      $result[] = $values;
+      if ($treatMultipleAsNew) {
+        foreach ($attributes as $key=>$attr) {
+          if (is_array($values[$key])) {
+            $treatedRow = $values;
+            unset($treatedRow[$key]);
+            foreach ($values[$key] as $value) {
+              if ($excludeNull && $value == NULL) continue 3;
+              $result[] = $treatedRow + array($key=>$value);
+            }
+          }
+        }
+        if (!isset($treatedRow)) $result[] = $values;
+      } else {
+        $result[] = $values;
+      }
     }
     return $result;
   }
@@ -150,7 +166,7 @@ class ArrayHelper {
    * @param string $attribute, use dot to specify relation's attribute
    * @return mixed
    */
-  public static function extractValueFromModel($model, $attribute) {
+  public static function extractValueFromModel($model, $attribute, $excludeNull = false) {
     if (strpos($attribute, '.') === false) {
       if (isset($model->$attribute)) return $model->$attribute;
       else return null;
@@ -163,8 +179,10 @@ class ArrayHelper {
         return ArrayHelper::extractValueFromModel($model->$attr, join('.', $listAttribute));
       } else {
         $list = array();
-        foreach ($model->$relation as $relations) {
-          $list[] = ArrayHelper::extractValueFromModel($relations, join('.', $listAttribute));
+        foreach ($model->$attr as $relations) {
+          $value = ArrayHelper::extractValueFromModel($relations, join('.', $listAttribute));
+          if ($excludeNull && $value == null) continue;
+          $list[] = $value;
         }
         return $list;
       }
@@ -253,13 +271,23 @@ class ArrayHelper {
     return $list;
   }
 
+  /**
+   * Flatten multi dimension array to single dimension.
+   * 
+   * @static
+   * @param array $array
+   * @param bool $prepandKey
+   * @return array
+   */
   public static function flatternArray($array, $prepandKey = false) {
     $result = array();
     foreach ($array as $k=>$v) {
       if (is_array($v)) {
         if ($prepandKey === false) {
-          $result += self::flatternArray($v, false);
+          $result = self::flatternArray($v, false) + $result;
         } else if (($prepandKey === true) && (!is_integer($k))) {
+          $result += self::flatternArray($v, $k);
+        } else if ($prepandKey === true) {
           $result += self::flatternArray($v, $k);
         } else {
           $result += self::flatternArray($v, $prepandKey.'.'.$k);
@@ -270,6 +298,47 @@ class ArrayHelper {
       }
     }
     return $result;
+  }
+
+  /**
+   * Extract a column from an array.
+   * @example
+   * <code>
+   * <?php
+   *   $array = array(
+   *     array('name'=>array('first'=>'abc', 'last'=>'zzz')),
+   *     array('name'=>array('first'=>'efg', 'last'=>'kkk')),
+   *   );
+   *   assert(array("abc","efg") == extractArray($array, "name.first"));
+   * ?>
+   * </code>
+   *
+   * @static
+   * @param array $array
+   * @param string $extractionPoint
+   * @return array
+   */
+  public static function extractArray($array, $extractionPoint) {
+    if (is_array($array)) {
+      $list = array();
+      $points = explode('.', $extractionPoint);
+      $pointKey = array_shift($points);
+      foreach ($array as $key=>$value) {
+        if (is_int($key)) {
+          $result = ArrayHelper::extractArray($value, $extractionPoint);
+          if ($result !== null) {
+            $list[] = $result;
+          }
+        } else {
+          if ($key == $pointKey) {
+            if (count($points) == 0) return $value;
+            else return ArrayHelper::extractArray($value, join('.', $points));
+          }
+        }
+      }
+      if (count($list) == 0) return null;
+      else return $list;
+    } else return $array;
   }
 
   /**
