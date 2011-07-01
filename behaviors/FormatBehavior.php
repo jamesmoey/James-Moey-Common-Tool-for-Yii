@@ -11,18 +11,20 @@ class FormatBehavior extends CActiveRecordBehavior {
     public $modified = 'modified';
 
     public function beforeValidate($on) {
-        if($this->autoTimeStamp):
-            if ($this->Owner->isNewRecord) {
-                if($this->created!==null) $this->Owner->{$this->created} = $this->getNow();
-                if($this->modified!==null) $this->Owner->{$this->modified} = $this->getNow();
+      /** @var $owner CActiveRecord */
+      $owner = $this->Owner;
+      if($this->autoTimeStamp):
+            if ($owner->isNewRecord) {
+                if($this->created!==null && $owner->hasAttribute($this->created)) $owner->{$this->created} = $this->getNow();
+                if($this->modified!==null && $owner->hasAttribute($this->modified)) $owner->{$this->modified} = $this->getNow();
             }
             else {
-                if($this->created!==null) $this->Owner->{$this->created} = $this->datetimeOnEnter($this->Owner->{$this->created});
-                if($this->modified!==null) $this->Owner->{$this->modified} = $this->getNow();
+                if($this->created!==null && $owner->hasAttribute($this->created)) $owner->{$this->created} = $this->datetimeOnEnter($owner->{$this->created});
+                if($this->modified!==null && $owner->hasAttribute($this->modified)) $owner->{$this->modified} = $this->getNow();
         }
         else:
             foreach($this->collumns as $collum):
-                $this->Owner->{$collum} = $this->{"{$this->typeFormater}onEnter"}($this->Owner->{$collum});
+                $owner->{$collum} = $this->{"{$this->typeFormater}onEnter"}($owner->{$collum});
             endforeach;
         endif;
         return true;
@@ -30,9 +32,9 @@ class FormatBehavior extends CActiveRecordBehavior {
 
     public function afterFind($on) {
         if($this->autoTimeStamp) $this->collumns = array_merge(array('created', 'modified'), $this->collumns);
-        foreach($this->collumns as $collum):
+        foreach($this->collumns as $collum) {
             $this->Owner->{$collum} = $this->{"{$this->typeFormater}onExit"}($this->Owner->{$collum});
-        endforeach;
+        }
         return true;
     }
 
@@ -49,7 +51,7 @@ class FormatBehavior extends CActiveRecordBehavior {
     public function datasOnExit($data) {
         if(empty ($data)) return false;
         if($this->useTimeStamp) {
-            return date('d/m/Y', ($data));
+            return strtotime($data);
         }
         else {
             return date('d/m/Y', strtotime($data));
@@ -69,7 +71,7 @@ class FormatBehavior extends CActiveRecordBehavior {
     public function datetimeOnExit($data) {
         if(empty ($data)) return false;
         if($this->useTimeStamp) {
-            return date('d/m/Y H:i:s', ($data));
+            return strtotime($data);
         }
         else {
             return date('d/m/Y H:i:s', strtotime($data));

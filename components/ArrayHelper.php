@@ -183,6 +183,12 @@ class ArrayHelper {
     $result = array();
     foreach ($models as $m) {
       $values = $m->getAttributes();
+      foreach($m->getMetaData()->columns as $name=>$column) {
+        /** @var CDbColumnSchema $column */
+        if (isset($values[$name])) {
+          if ($column->type == "integer") $values[$name] = (int) $values[$name];
+        }
+		  }
       if ($extraAttributes === true) {
         $refObj = new ReflectionObject($m);
         foreach($refObj->getProperties() as $refProp) {
