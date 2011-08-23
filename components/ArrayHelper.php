@@ -220,7 +220,11 @@ class ArrayHelper {
         }
       }
       ArrayHelper::removeObjectFromArray($values);
-      $result[$m->getPrimaryKey()] = $values;
+      if (is_array($m->getPrimaryKey())) {
+        $result[] = $values;
+      } else {
+        $result[$m->getPrimaryKey()] = $values;
+      }
     }
     return $result;
   }
