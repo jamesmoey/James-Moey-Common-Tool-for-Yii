@@ -201,12 +201,6 @@ class ArrayHelper {
     $result = array();
     foreach ($models as $m) {
       $values = $m->getAttributes();
-      foreach($m->getMetaData()->columns as $name=>$column) {
-        /** @var CDbColumnSchema $column */
-        if (isset($values[$name])) {
-          if ($column->type == "integer") $values[$name] = (int) $values[$name];
-        }
-		  }
       if ($extraAttributes === true) {
         $refObj = new ReflectionObject($m);
         foreach($refObj->getProperties() as $refProp) {
@@ -220,11 +214,7 @@ class ArrayHelper {
         }
       }
       ArrayHelper::removeObjectFromArray($values);
-      if (is_array($m->getPrimaryKey())) {
-        $result[] = $values;
-      } else {
-        $result[$m->getPrimaryKey()] = $values;
-      }
+      $result[$m->getPrimaryKey()] = $values;
     }
     return $result;
   }
@@ -425,5 +415,21 @@ class ArrayHelper {
       } else $aReturn[$mKey] = $mValue;
     }
     return $aReturn;
+  }
+
+  /**
+   * Create array of model with column value in array index.
+   *
+   * @static
+   * @param CActiveRecord $models[]
+   * @param string $column
+   * @return array
+   */
+  public static function createArrayFromModelsWithColumn($models, $column) {
+    $list = array();
+    foreach ($models as $model) {
+      $list[$model->$column] = $model;
+    }
+    return $list;
   }
 }
