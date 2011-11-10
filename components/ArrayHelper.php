@@ -432,4 +432,20 @@ class ArrayHelper {
     }
     return $list;
   }
+
+  /**
+   * Prepend a string to the index of an array. All the row will be prepended.
+   *
+   * @static
+   * @param array $array
+   * @param string $prependString
+   * @return array
+   */
+  public static function prependArrayIndex($array, $prependString) {
+    $newArray = array();
+    foreach ($array as $index=>$value) {
+      $newArray[$prependString.$index] = $value;
+    }
+    return $newArray;
+  }
 }
