@@ -271,6 +271,7 @@ class ArrayHelper {
     $keys = array();
     $result = array();
     foreach ($list as $model) {
+      if (! method_exists($model, "getPrimaryKey")) continue;
       $key = $model->getPrimaryKey();
       if (array_search($key, $keys) === false) {
         $keys[] = $model->getPrimaryKey();
