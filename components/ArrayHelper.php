@@ -76,6 +76,38 @@ class ArrayHelper {
   }
 
   /**
+   * Extract subset of the pass in array. Match based on the array of value pass in.
+   *
+   * @static
+   * @param array $value
+   * @param array $array Array of array.
+   * @param bool $exactmatch
+   */
+  public static function extractSubsetArray($value, $array, $exactmatch = true) {
+    $value = array_unique($value);
+    $map = $array;
+    foreach ($value as $v) {
+      $result = array();
+      foreach ($map as $key => $row) {
+        if (ArrayHelper::deepSearchContainValue($v, $row)) {
+          $result[$key] = $row;
+        }
+      }
+      $map = $result;
+    }
+    if ($exactmatch) {
+      $result = array();
+      foreach ($map as $key=>$row) {
+        if (count($row) == count($value)) {
+          $result[$key] = $row;
+        }
+      }
+      $map = $result;
+    }
+    return $map;
+  }
+
+  /**
    * Recursive implode an array.
    *
    * @static
