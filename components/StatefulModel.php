@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * Model that allow tracking of attribute setting. It also allow user to commit changes and rollback to original state.
+ */
 abstract class StatefulModel extends CModel {
 
   private $attributeValues = array();
