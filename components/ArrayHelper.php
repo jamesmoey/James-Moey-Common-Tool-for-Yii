@@ -207,6 +207,7 @@ class ArrayHelper {
       $attr = array_shift($listAttribute);
       $relation = $model->getActiveRelation($attr);
       if ($relation === null) return null;
+      if (!isset($model->$attr)) return null;
       if ($relation instanceof CBelongsToRelation || $relation instanceof CHasOneRelation) {
         return ArrayHelper::extractValueFromModel($model->$attr, join('.', $listAttribute));
       } else {
