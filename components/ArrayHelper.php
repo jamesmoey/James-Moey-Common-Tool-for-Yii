@@ -150,7 +150,7 @@ class ArrayHelper {
   public static function extractListOfValuesFromModels($models, $attribute) {
     $result = array();
     foreach ($models as $m) {
-      $result[] = ArrayHelper::extractValueFromModel($m, $attribute);
+      $result = array_merge($result, ArrayHelper::extractValueFromModel($m, $attribute));
     }
     return $result;
   }
@@ -466,6 +466,23 @@ class ArrayHelper {
     $list = array();
     foreach ($models as $model) {
       $list[$model->$column] = $model;
+    }
+    return $list;
+  }
+
+  /**
+   * Create group of model with column value in array index.
+   *
+   * @static
+   * @param CActiveRecord $models[]
+   * @param string $column
+   * @return array columnvalue => array of models
+   */
+  public static function groupFromModelsWithColumn($models, $column) {
+    $list = array();
+    foreach ($models as $model) {
+      if (!isset($list[$model->$column])) $list[$model->$column] = array();
+      $list[$model->$column][] = $model;
     }
     return $list;
   }
