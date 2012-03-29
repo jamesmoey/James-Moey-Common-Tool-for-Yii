@@ -150,7 +150,12 @@ class ArrayHelper {
   public static function extractListOfValuesFromModels($models, $attribute) {
     $result = array();
     foreach ($models as $m) {
-      $result = array_merge($result, ArrayHelper::extractValueFromModel($m, $attribute));
+      $value = ArrayHelper::extractValueFromModel($m, $attribute);
+      if (is_array($value)) {
+        $result = array_merge($result, $value);
+      } else {
+        $result[] = $value;
+      }
     }
     return $result;
   }
