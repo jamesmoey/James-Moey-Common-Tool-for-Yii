@@ -1,6 +1,8 @@
 <?php
 class ClassBehavior extends CBehavior {
 
+  public $alias;
+
   /**
    * Attach behavior to a component
    *
@@ -11,7 +13,11 @@ class ClassBehavior extends CBehavior {
     if (Yii::app()->hasComponent("behaviors")) {
       /** @var $behaviorComponent ClassBehaviorApplicationComponent */
       $behaviorComponent = Yii::app()->getComponent("behaviors");
-      $behaviors = $behaviorComponent->getBehaviors(get_class($owner));
+      if (!empty($this->alias)) {
+        $behaviors = $behaviorComponent->getBehaviors($this->alias);
+      } else {
+        $behaviors = $behaviorComponent->getBehaviors(get_class($owner));
+      }
       if (!empty($behaviors)) {
         $owner->attachBehaviors($behaviors);
       }
