@@ -2,6 +2,31 @@
 class ArrayHelper {
 
   /**
+   * Convert multi-dimension array to nexted object
+   *
+   * @static
+   * @param $array
+   * @return bool|stdClass
+   */
+  public static function arrayToObject($array) {
+    if(!is_array($array)) {
+      return $array;
+    }
+    $object = new stdClass();
+    if (is_array($array) && count($array) > 0) {
+      foreach ($array as $name => $value) {
+        $name = strtolower(trim($name));
+        if (!empty($name)) {
+          $object->$name = ArrayHelper::arrayToObject($value);
+        }
+      }
+      return $object;
+    } else {
+      return FALSE;
+    }
+  }
+
+  /**
    * Search for an value using key provided in the second and etc parameter
    * @static
    * @param array Search Context
